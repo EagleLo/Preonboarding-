@@ -16,13 +16,14 @@ from pytorch_lightning.loggers import CSVLogger
 from torch.optim.lr_scheduler import OneCycleLR
 from torch.optim.swa_utils import AveragedModel, update_bn
 from torchmetrics.functional import accuracy
-from models import resnet
+from models.resnet import LitResnet
 import yaml
+import wandb
 
 # Load the config.yaml file
 with open('config.yaml', 'r') as f:
     config = yaml.safe_load(f)
-    
+
 seed_everything(7)
 
 
@@ -56,6 +57,8 @@ cifar10_dm = CIFAR10DataModule(
     val_transforms=test_transforms,
 )
 
+
+
 model = LitResnet(lr=0.05)
 
 trainer = Trainer(
@@ -65,6 +68,19 @@ trainer = Trainer(
     logger=CSVLogger(save_dir="logs/"),
     callbacks=[LearningRateMonitor(logging_interval="step"), TQDMProgressBar(refresh_rate=10)],
 )
+
+wandb.init(
+      # Set the project where this run will be logged
+      project="preonboarding-Caltech",
+      # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
+      name=f"experiment_1",
+      # Track hyperparameters and run metadata
+      config={
+      "lr": 0.5,
+      "architecture": "resnet50",
+      "dataset": "CIFAR-10",
+      "epochs": 30,
+      })
 
 trainer.fit(model, cifar10_dm)
 trainer.test(model, datamodule=cifar10_dm)

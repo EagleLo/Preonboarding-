@@ -13,6 +13,7 @@ from torch.optim.lr_scheduler import OneCycleLR
 from torch.optim.swa_utils import AveragedModel, update_bn
 from torchmetrics.functional import accuracy
 from models import resnet
+import wandb
 
 def create_model():
     model = torchvision.models.resnet18(pretrained=False, num_classes=10)
@@ -35,6 +36,9 @@ class LitResnet(LightningModule):
         x, y = batch
         logits = self(x)
         loss = F.nll_loss(logits, y)
+        wandb.log({
+                  "train/train_loss":loss})
+        print("train/train_loss = ", loss)
         self.log("train_loss", loss)
         return loss
 
@@ -44,9 +48,13 @@ class LitResnet(LightningModule):
         loss = F.nll_loss(logits, y)
         preds = torch.argmax(logits, dim=1)
 
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task="multiclass", num_classes=10)
 
         if stage:
+            wandb.log({
+                  f"{stage}/{stage}_loss":loss})
+            wandb.log({
+                  f"{stage}/{stage}_acc":acc})
             self.log(f"{stage}_loss", loss, prog_bar=True)
             self.log(f"{stage}_acc", acc, prog_bar=True)
 
