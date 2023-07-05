@@ -62,7 +62,7 @@ cifar10_dm = CIFAR10DataModule(
 model = LitResnet(lr=0.05)
 
 trainer = Trainer(
-    max_epochs=30,
+    max_epochs=60,
     accelerator="auto",
     devices=1 if torch.cuda.is_available() else None,  # limiting got iPython runs
     logger=CSVLogger(save_dir="logs/"),
@@ -76,10 +76,10 @@ wandb.init(
       name=f"experiment_1",
       # Track hyperparameters and run metadata
       config={
-      "lr": 0.5,
+      "lr": 0.05,
       "architecture": "resnet50",
       "dataset": "CIFAR-10",
-      "epochs": 30,
+      "epochs": 60,
       })
 
 trainer.fit(model, cifar10_dm)
